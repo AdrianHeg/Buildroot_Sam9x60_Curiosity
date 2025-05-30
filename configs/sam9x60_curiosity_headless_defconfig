@@ -1,0 +1,307 @@
+# ============================================================================
+# CONFIGURACIÓN OPTIMIZADA PARA SAM9X60 CURIOSITY BOARD
+# Basada en Buildroot 2025.x con soporte completo para desarrollo
+# ============================================================================
+
+# TARGET ARCHITECTURE
+BR2_arm=y                                    # Arquitectura ARM
+BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_12=y # Headers Linux 6.12 (último LTS)
+
+# TOOLCHAIN CONFIGURATION
+BR2_TOOLCHAIN_BUILDROOT_CXX=y               # Soporte C++ habilitado
+BR2_CCACHE=y                                # Cache de compilación para builds más rápidos
+
+# PATCHES Y CONFIGURACIÓN EXTERNA
+#BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_MCHP_PATH)/patches"
+
+# SYSTEM CONFIGURATION
+BR2_TARGET_GENERIC_HOSTNAME="sam9x60_curiosity"
+BR2_TARGET_GENERIC_ISSUE="Welcome to the Microchip Ali & Jorge SAM9X60"
+
+# INIT SYSTEM - SystemD para funcionalidad completa
+BR2_INIT_SYSTEMD=y                          # SystemD en lugar de SysV/BusyBox init
+
+# SHELL Y SISTEMA
+BR2_ROOTFS_DEVICE_TABLE="system/device_table.txt"
+BR2_SYSTEM_BIN_SH_BASH=y                    # Bash como shell por defecto
+BR2_SYSTEM_DHCP="eth0"                      # DHCP automático en eth0
+BR2_SYSTEM_DEFAULT_PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+
+# FILESYSTEM OVERLAYS Y SCRIPTS
+BR2_ROOTFS_OVERLAY="board/microchip/sama5/fs-overlay/ board/microchip/sama5d2/fs-overlay/"
+BR2_ROOTFS_POST_BUILD_SC    RIPT="$(BR2_EXTERNAL_MCHP_PATH)/board/microchip/at91/post_build.sh $(BR2_EXTERNAL_MCHP_PATH)/board/microchip/sam9x/post_build.sh $(BR2_EXTERNAL_MCHP_PATH)/board/microchip/sam9x60_curiosity/post_build_v2g.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="support/scripts/genimage.sh"
+BR2_ROOTFS_POST_SCRIPT_ARGS="-c board/microchip/sam9x60_curiosity/genimage.cfg"
+
+# ============================================================================
+# KERNEL CONFIGURATION
+# ============================================================================
+BR2_LINUX_KERNEL=y
+BR2_LINUX_KERNEL_CUSTOM_TARBALL=y
+BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="$(call github,linux4microchip,linux,linux4microchip-2025.04-rc3)/linux,linux4microchip-2025.04-rc3.tar.gz"
+BR2_LINUX_KERNEL_DEFCONFIG="at91_dt"       # Defconfig AT91 con Device Tree
+BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="board/microchip/sam9x60/at91_dt.fragment"
+BR2_LINUX_KERNEL_DTS_SUPPORT=y             # Soporte Device Tree
+BR2_LINUX_KERNEL_INTREE_DTS_NAME="microchip/at91-sam9x60_curiosity"
+BR2_PACKAGE_LINUX_TOOLS_IIO=y              # Herramientas IIO para sensores
+
+BR2_LINUX_KERNEL_ZIMAGE=y
+
+# KERNEL CONFIG FRAGMENT PARA V2G y COMUNICACIONES
+BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES+="board/microchip/sam9x60_curiosity/v2g.fragment"
+
+# ============================================================================
+# DEVELOPMENT TOOLS
+# ============================================================================
+BR2_PACKAGE_GDB=y                          # GDB completo
+BR2_PACKAGE_GDB_SERVER=y                   # GDB Server para debug remoto
+BR2_PACKAGE_GDB_DEBUGGER=y                 # Debugger GDB
+BR2_PACKAGE_GREP=y                         # Grep mejorado
+BR2_PACKAGE_TREE=y                         # Visualización de directorios
+
+# ============================================================================
+# FILESYSTEM TOOLS
+# ============================================================================
+BR2_PACKAGE_DOSFSTOOLS=y                   # Herramientas FAT32
+BR2_PACKAGE_DOSFSTOOLS_MKFS_FAT=y
+BR2_PACKAGE_MTD=y                          # Herramientas MTD para flash
+BR2_PACKAGE_MTD_MKFSJFFS2=y                # JFFS2 para NAND
+BR2_PACKAGE_MTD_MKFSUBI=y                  # UBI para NAND
+BR2_PACKAGE_NFS_UTILS=y                    # Soporte NFS
+BR2_PACKAGE_MTD_NANDDUMP=y                 # Dump NAND
+BR2_PACKAGE_MTD_NANDWRITE=y                # Escribir NAND
+BR2_PACKAGE_MTD_FLASH_ERASE=y              # Borrar flash
+BR2_PACKAGE_MTD_FLASH_LOCK=y               # Bloquear flash
+BR2_PACKAGE_MTD_FLASH_UNLOCK=y             # Desbloquear flash
+
+# HERRAMIENTAS ADICIONALES PARA STORAGE
+BR2_PACKAGE_E2FSPROGS=y                    # Herramientas ext2/3/4
+BR2_PACKAGE_E2FSPROGS_FSCK=y
+BR2_PACKAGE_E2FSPROGS_RESIZE2FS=y
+BR2_PACKAGE_SQUASHFS=y                     # Filesystem comprimido
+
+# ============================================================================
+# HARDWARE TESTING TOOLS
+# ============================================================================
+BR2_PACKAGE_FB_TEST_APP=y                  # Test de framebuffer
+BR2_PACKAGE_EVTEST=y                       # Test de eventos input
+BR2_PACKAGE_I2C_TOOLS=y                    # Herramientas I2C
+BR2_PACKAGE_RNG_TOOLS=y                    # Herramientas generador números aleatorios
+BR2_PACKAGE_SETSERIAL=y                    # Configuración puertos serie
+BR2_PACKAGE_SPI_TOOLS=y                    # Herramientas SPI
+BR2_PACKAGE_USBUTILS=y                     # Utilidades USB
+
+# ============================================================================
+# PROGRAMMING LANGUAGES
+# ============================================================================
+BR2_PACKAGE_LUA=y                          # Lua scripting
+
+# Python 3 completo con módulos esenciales para V2G
+BR2_PACKAGE_PYTHON3=y
+BR2_PACKAGE_PYTHON3_PY_PYC=y              # Compilación bytecode
+BR2_PACKAGE_PYTHON3_CURSES=y               # Interfaz texto
+BR2_PACKAGE_PYTHON3_READLINE=y             # Readline para consola
+BR2_PACKAGE_PYTHON_CANOPEN=y               # Protocolo CAN
+BR2_PACKAGE_PYTHON_CRYPTOGRAPHY=y          # Criptografía
+BR2_PACKAGE_PYTHON_IPY=y                   # Manipulación IP
+BR2_PACKAGE_PYTHON_PIP=y                   # Gestor paquetes
+BR2_PACKAGE_PYTHON_SERIAL_ASYNCIO=y        # Serie asíncrono
+BR2_PACKAGE_PYTHON_SMBUS_CFFI=y           # I2C/SMBus
+BR2_PACKAGE_PYTHON_SPIDEV=y               # SPI
+
+# PYTHON PARA V2G Y NETWORKING
+BR2_PACKAGE_PYTHON_SCAPY=y                # Manipulación paquetes red
+BR2_PACKAGE_PYTHON_PYSERIAL=y             # Comunicación serie
+BR2_PACKAGE_PYTHON_REQUESTS=y             # Cliente HTTP
+BR2_PACKAGE_PYTHON_TWISTED=y              # Framework networking
+BR2_PACKAGE_PYTHON_ZEROCONF=y             # mDNS/Bonjour
+BR2_PACKAGE_PYTHON_PAHO_MQTT=y            # Cliente MQTT
+BR2_PACKAGE_PYTHON_PYMODBUS=y             # Protocolo Modbus
+BR2_PACKAGE_PYTHON_XMLTODICT=y            # Parser XML
+BR2_PACKAGE_PYTHON_LXML=y                 # Procesamiento XML avanzado
+
+# ============================================================================
+# SECURITY & CRYPTO
+# ============================================================================
+BR2_PACKAGE_CA_CERTIFICATES=y              # Certificados CA
+BR2_PACKAGE_GNUTLS=y                       # TLS/SSL
+BR2_PACKAGE_GNUTLS_TOOLS=y
+BR2_PACKAGE_LIBP11=y                       # PKCS#11
+BR2_PACKAGE_LIBOPENSSL_BIN=y              # OpenSSL binarios
+BR2_PACKAGE_P11_KIT=y                      # PKCS#11 toolkit
+
+# GPIO Y HARDWARE
+BR2_PACKAGE_LIBGPIOD=y                     # Librería GPIO moderna
+BR2_PACKAGE_LIBGPIOD_TOOLS=y              # Herramientas GPIO
+BR2_PACKAGE_CJSON=y                        # Parser JSON
+
+# ============================================================================
+# NETWORKING - CONFIGURACIÓN COMPLETA PARA V2G
+# ============================================================================
+BR2_PACKAGE_BRIDGE_UTILS=y                # Bridge networking
+BR2_PACKAGE_CAN_UTILS=y                   # Herramientas CAN bus
+BR2_PACKAGE_CRDA=y                        # Regulación WiFi
+BR2_PACKAGE_DHCP=y                        # Servidor DHCP
+BR2_PACKAGE_DHCP_SERVER=y
+BR2_PACKAGE_DHCP_SERVER_DELAYED_ACK=y
+BR2_PACKAGE_DHCP_RELAY=y
+BR2_PACKAGE_DHCPCD=y                      # Cliente DHCP
+BR2_PACKAGE_ETHTOOL=y                     # Herramientas Ethernet
+BR2_PACKAGE_IFUPDOWN=y                    # Configuración interfaces red
+BR2_PACKAGE_IPERF3=y                      # Testing rendimiento red
+BR2_PACKAGE_IPROUTE2=y                    # Herramientas routing avanzado
+BR2_PACKAGE_IPTABLES=y                    # Firewall
+BR2_PACKAGE_MII_DIAG=y                    # Diagnóstico MII
+BR2_PACKAGE_NET_TOOLS=y                   # Herramientas red básicas
+BR2_PACKAGE_NETCAT_OPENBSD=y             # Netcat
+BR2_PACKAGE_NFTABLES=y                    # Firewall moderno
+BR2_PACKAGE_OPENSSH=y                     # SSH servidor/cliente
+BR2_PACKAGE_PHYTOOL=y                     # Herramientas PHY Ethernet
+BR2_PACKAGE_RADVD=y                       # Router Advertisement IPv6
+BR2_PACKAGE_RSYNC=y                       # Sincronización archivos
+BR2_PACKAGE_TCPDUMP=y                     # Captura paquetes
+BR2_PACKAGE_TRACEROUTE=y                  # Trazado rutas
+BR2_PACKAGE_WGET=y                        # Descarga archivos
+
+# HERRAMIENTAS ESPECÍFICAS PARA V2G Y PCAP
+BR2_PACKAGE_WIRESHARK=y                   # Analizador protocolos completo
+BR2_PACKAGE_TSHARK=y                      # Wireshark línea comandos
+BR2_PACKAGE_LIBPCAP=y                     # Librería captura paquetes
+BR2_PACKAGE_PCAP_UTILS=y                  # Utilidades PCAP
+BR2_PACKAGE_NMAP=y                        # Escaneo red
+BR2_PACKAGE_SOCAT=y                       # Proxy datos bidireccional
+
+# IPv6 COMPLETO (para V2G)
+BR2_PACKAGE_DHCPV6=y                      # Cliente DHCPv6
+BR2_PACKAGE_WIDE_DHCPV6=y                 # Servidor DHCPv6
+
+# PROTOCOLOS TIEMPO (crítico para V2G)
+BR2_PACKAGE_NTP=y                         # Sincronización tiempo
+BR2_PACKAGE_CHRONY=y                      # Cliente NTP moderno
+BR2_PACKAGE_HTPDATE=y                     # Sincronización HTTP
+
+# ============================================================================
+# SYSTEM UTILITIES
+# ============================================================================
+BR2_PACKAGE_BASH_COMPLETION=y             # Autocompletar bash
+BR2_PACKAGE_FILE=y                        # Identificación tipos archivo
+BR2_PACKAGE_NEOFETCH=y                    # Info sistema fancy
+BR2_PACKAGE_TIME=y                        # Medición tiempo ejecución
+BR2_PACKAGE_WHICH=y                       # Localizar comandos
+BR2_PACKAGE_HTOP=y                        # Monitor procesos
+BR2_PACKAGE_UTIL_LINUX_BINARIES=y        # Utilidades Linux
+
+# EDITORES
+BR2_PACKAGE_NANO=y                        # Editor simple
+BR2_PACKAGE_VIM=y                         # Editor avanzado
+
+# ============================================================================
+# FILESYSTEM IMAGE - SOPORTE SD Y NAND
+# ============================================================================
+BR2_TARGET_ROOTFS_EXT2=y                 # Sistema archivos ext4
+BR2_TARGET_ROOTFS_EXT2_4=y
+BR2_TARGET_ROOTFS_EXT2_SIZE="1024M"       # MB (ajustar según necesidad)
+
+# SOPORTE ADICIONAL PARA NAND
+BR2_TARGET_ROOTFS_UBIFS=y
+# UBIFS para NAND flash
+BR2_TARGET_ROOTFS_UBIFS_LEBSIZE=0x1f000
+# Logical erase block size
+BR2_TARGET_ROOTFS_UBIFS_MINIOSIZE=0x800
+# Minimum I/O size
+BR2_TARGET_ROOTFS_UBIFS_MAXLEBCNT=2048
+# Maximum LEB count
+
+# COMPRESIÓN PARA OPTIMIZAR ESPACIO
+BR2_TARGET_ROOTFS_TAR=y                  # TAR para backup
+BR2_TARGET_ROOTFS_TAR_GZIP=y             # Compresión GZIP
+
+# ============================================================================
+# BOOTLOADERS
+# ============================================================================
+# AT91Bootstrap
+BR2_TARGET_AT91BOOTSTRAP3=y
+BR2_TARGET_AT91BOOTSTRAP3_CUSTOM_GIT=y
+BR2_TARGET_AT91BOOTSTRAP3_CUSTOM_REPO_URL="https://github.com/linux4sam/at91bootstrap.git"
+BR2_TARGET_AT91BOOTSTRAP3_CUSTOM_REPO_VERSION="4.0.11"
+BR2_TARGET_AT91BOOTSTRAP3_DEFCONFIG="sam9x60_curiositysd_uboot"
+
+# U-Boot - CONFIGURACIÓN CORRECTA PARA SAM9X60 CURIOSITY
+BR2_TARGET_UBOOT=y
+BR2_TARGET_UBOOT_BUILD_SYSTEM_KCONFIG=y
+BR2_TARGET_UBOOT_CUSTOM_GIT=y
+BR2_TARGET_UBOOT_CUSTOM_REPO_URL="https://github.com/linux4microchip/u-boot-mchp.git"
+BR2_TARGET_UBOOT_CUSTOM_REPO_VERSION="linux4microchip-2025.04"
+BR2_TARGET_UBOOT_BOARD_DEFCONFIG="sam9x60_curiosity_mmc"  # Defconfig correcto
+BR2_TARGET_UBOOT_NEEDS_DTC=y
+#BR2_TARGET_UBOOT_FORMAT_CUSTOM=y          # Formato custom
+#BR2_TARGET_UBOOT_FORMAT_CUSTOM_NAME="u-boot.bin"
+
+# ============================================================================
+# HOST TOOLS
+# ============================================================================
+BR2_PACKAGE_HOST_DOSFSTOOLS=y             # Herramientas FAT host
+BR2_PACKAGE_HOST_ENVIRONMENT_SETUP=y      # Script environment
+BR2_PACKAGE_HOST_GENIMAGE=y               # Generador imágenes
+BR2_PACKAGE_HOST_MTOOLS=y                 # Herramientas DOS
+BR2_PACKAGE_HOST_UBOOT_TOOLS=y           # Herramientas U-Boot
+BR2_PACKAGE_HOST_UBOOT_TOOLS_FIT_SUPPORT=y
+BR2_PACKAGE_HOST_UBOOT_TOOLS_ENVIMAGE=y
+BR2_PACKAGE_HOST_UBOOT_TOOLS_ENVIMAGE_SOURCE="$(BR2_EXTERNAL_MCHP_PATH)/board/microchip/sam9x60_curiosity/uboot-env.txt"
+BR2_PACKAGE_HOST_UBOOT_TOOLS_ENVIMAGE_SIZE="0x4000"
+
+# ============================================================================
+# MICROCHIP SPECIFIC PACKAGES
+# ============================================================================
+#BR2_MCHP_SAM=y                           # Soporte SAM Microchip
+#BR2_MCHP_SAM_9X6=y                       # Específico SAM9X60
+#BR2_PACKAGE_DT_OVERLAY_MCHP=y            # Device Tree Overlays
+#BR2_PACKAGE_DT_OVERLAY_MCHP_PLATFORM="sam9x60_curiosity"
+#BR2_PACKAGE_PYTHON_MPIO=y                # Python MPIO
+#BR2_PACKAGE_WILCMCHP_FIRMWARE=y          # Firmware WiFi Microchip
+
+# CRYPTOAUTH (Chip seguridad)
+#BR2_PACKAGE_CRYPTOAUTHLIB=y              # Librería CryptoAuth
+#BR2_PACKAGE_CRYPTOAUTHLIB_SAM9X60_CURIOSITY=y
+#BR2_PACKAGE_PYTHON_CRYPTOAUTHLIB=y       # Bindings Python
+
+# ============================================================================
+# CONFIGURACIONES ADICIONALES PARA V2G Y COMUNICACIONES
+# ============================================================================
+
+# PROTOCOLO V2G Y XML
+BR2_PACKAGE_LIBXML2=y                    # Parser XML
+BR2_PACKAGE_LIBXML2_PYTHON=y             # Bindings Python XML
+BR2_PACKAGE_LIBXSLT=y                    # Transformaciones XSLT
+BR2_PACKAGE_XERCES=y                     # Parser XML C++
+
+# PROTOCOLOS SERIE Y SPI AVANZADOS
+BR2_PACKAGE_MINICOM=y                    # Terminal serie
+BR2_PACKAGE_SCREEN=y                     # Multiplexor terminal
+BR2_PACKAGE_PICOCOM=y                    # Cliente serie simple
+BR2_PACKAGE_LRZSZ=y                      # Transferencia XModem/YModem
+
+# HERRAMIENTAS LOGGING Y MONITOREO
+BR2_PACKAGE_RSYSLOG=y                    # Sistema logging avanzado
+BR2_PACKAGE_LOGROTATE=y                  # Rotación logs
+BR2_PACKAGE_MONIT=y                      # Monitoreo servicios
+
+# BASES DE DATOS (para almacenar datos V2G)
+BR2_PACKAGE_SQLITE=y                     # Base datos embebida
+BR2_PACKAGE_SQLITE_STAT4=y               # Estadísticas SQL
+BR2_PACKAGE_SQLITE_ENABLE_FTS=y          # Full text search
+
+# COMPRESIÓN Y ARCHIVADO
+BR2_PACKAGE_GZIP=y                       # Compresión gzip
+BR2_PACKAGE_TAR=y                        # Archivador tar
+BR2_PACKAGE_ZIP=y                        # Compresión zip
+BR2_PACKAGE_UNZIP=y                      # Descompresión zip
+
+# HERRAMIENTAS DESARROLLO Y DEBUG ESPECÍFICAS
+BR2_PACKAGE_STRACE=y                     # Trazado llamadas sistema
+BR2_PACKAGE_LTRACE=y                     # Trazado llamadas librería
+BR2_PACKAGE_VALGRIND=y                   # Debug memoria
+BR2_PACKAGE_GDB_PYTHON=y                 # Python en GDB
+
+# CRON PARA TAREAS PROGRAMADAS
+BR2_PACKAGE_DCRON=y                      # Cron daemon
