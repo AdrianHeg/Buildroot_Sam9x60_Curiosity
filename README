@@ -1,26 +1,167 @@
-Buildroot is a simple, efficient and easy-to-use tool to generate embedded
-Linux systems through cross-compilation.
+# Buildroot 2025.05-rc2
 
-The documentation can be found in docs/manual. You can generate a text
-document with 'make manual-text' and read output/docs/manual/manual.text.
-Online documentation can be found at http://buildroot.org/docs.html
+## What is Buildroot?
 
-To build and use the buildroot stuff, do the following:
+Buildroot is a simple, efficient and easy-to-use tool to generate embedded Linux systems through cross-compilation. It allows you to create a complete root filesystem, Linux kernel, bootloader, and toolchain for your target platform.
 
-1) run 'make menuconfig'
-2) select the target architecture and the packages you wish to compile
-3) run 'make'
-4) wait while it compiles
-5) find the kernel, bootloader, root filesystem, etc. in output/images
+Buildroot is primarily useful for:
+- Embedded systems with limited resources
+- Creating custom and minimalist Linux distributions
+- IoT device firmware development
+- Rapid prototyping of Linux systems
 
-You do not need to be root to build or run buildroot.  Have fun!
+## Installing WSL (Windows Subsystem for Linux)
 
-Buildroot comes with a basic configuration for a number of boards. Run
-'make list-defconfigs' to view the list of provided configurations.
+If your main operating system is Windows, you'll need WSL to compile Buildroot:
 
-Please feed suggestions, bug reports, insults, and bribes back to the
-buildroot mailing list: buildroot@buildroot.org
-You can also find us on #buildroot on OFTC IRC.
+### Method 1: Automatic Installation (Windows 10 version 2004+ or Windows 11)
 
-If you would like to contribute patches, please read
-https://buildroot.org/manual.html#submitting-patches
+1. Open PowerShell or CMD as **Administrator**
+2. Run the following command:
+```powershell
+wsl --install
+```
+3. Restart your computer
+4. After restart, Ubuntu setup will open automatically
+
+### Method 2: Manual Installation
+
+1. Enable WSL in PowerShell as Administrator:
+```powershell
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+```
+
+2. Restart Windows
+
+3. Download and install the Linux kernel update package for WSL2:
+   - [Download here](https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi)
+
+4. Set WSL2 as default version:
+```powershell
+wsl --set-default-version 2
+```
+
+5. Install Ubuntu from Microsoft Store or run:
+```powershell
+wsl --install -d Ubuntu
+```
+
+## Prerequisites and Required Tools
+
+Once you have WSL configured (or if you're already using Linux), install the following tools:
+
+### For Ubuntu/Debian:
+```bash
+sudo apt update
+sudo apt install -y \
+    build-essential \
+    git \
+    wget \
+    cpio \
+    python3 \
+    unzip \
+    rsync \
+    bc \
+    libncurses5-dev \
+    libssl-dev \
+    libelf-dev \
+    flex \
+    bison \
+    file
+```
+
+### For Fedora/CentOS/RHEL:
+```bash
+sudo dnf groupinstall "Development Tools"
+sudo dnf install -y \
+    git \
+    wget \
+    cpio \
+    python3 \
+    unzip \
+    rsync \
+    bc \
+    ncurses-devel \
+    openssl-devel \
+    elfutils-libelf-devel \
+    flex \
+    bison \
+    file
+```
+
+### Verify tool installation:
+```bash
+# Verify that tools are available
+which gcc make git python3
+```
+
+## Building Buildroot
+
+Follow these commands in the exact order to compile the project:
+
+### 1. Clean previous builds
+```bash
+make clean
+```
+
+### 2. Configure for target board
+```bash
+make sam9x60_curiosity_headless_defconfig
+```
+
+3. Set permissions for post-build scripts
+```bash
+chmod +x board/microchip/at91/post_build.sh
+chmod +x board/microchip/sam9x/post_build.sh
+chmod +x board/microchip/sam9x60_curiosity/post_build_v2g.sh
+```
+
+4. Compile the project
+```bash
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" make -j$(nproc)
+```
+
+## Command Explanation
+
+make clean: Removes all previously compiled files to ensure a clean build
+make sam9x60_curiosity_headless_defconfig: Loads the predefined configuration for the SAM9X60 Curiosity development board in headless mode (no graphical interface)
+chmod +x PATH: Grants execute permissions to the post-build script files required for the build process
+PATH="..." make -j$(nproc): Compiles the project using all available processor cores, with a specific PATH to avoid conflicts
+
+## Build Time
+
+⚠️ **Important note**: The first build can take anywhere from 30 minutes to several hours depending on:
+- Your processor speed
+- Amount of available RAM
+- Internet connection speed (for downloading packages)
+- Specific configuration selected
+
+## Output Files
+
+After a successful build, you'll find the generated files in:
+```
+output/images/
+├── at91bootstrap.bin    # Bootloader
+├── sam9x60_curiosity.dtb # Device Tree Blob
+├── rootfs.tar           # Root filesystem
+├── sdcard.img          # Complete SD card image
+└── zImage              # Linux kernel
+```
+
+## Common Troubleshooting
+
+### Permission errors
+```bash
+sudo chown -R $USER:$USER .
+```
+
+### Insufficient disk space
+Make sure you have at least 20GB of free space.
+
+### Network errors
+If there are issues downloading packages, check your internet connection or configure a proxy if necessary.
+
+## Contributing
+
+If you find improvements or corrections, feel free to create a pull request or open an issue.
